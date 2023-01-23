@@ -1,5 +1,12 @@
-import pygame, math, threading
+import pygame, math, random, threading
 from pygame.locals import *
+
+class circleObject:
+    def __init__(self, colour, radius, position, velocity):
+        self.colour = colour
+        self.radius = radius
+        self.position = position
+        self.velocity = velocity
 
 width = 800
 height = 450
@@ -11,140 +18,58 @@ pygame.display.set_caption("Physics")
 clock = pygame.time.Clock()
 gameExit = False
 
-fps = 120.0
+fps = 1000.0
+numCircles = 100
+circles = []
 
-colour = (255,0,0)
-colour2 = (0,255,0)
-colour3 = (0,0,255)
-
-circleX = 200.0
-circleY = 225.0
-circleVX = 100.0
-circleVY = 0.0
-circleRad = 80.0
-
-circle2X = 720.0
-circle2Y = 225.0
-circle2VX = -300.0
-circle2VY = 500.0
-circle2Rad = 20.0
-
-circle3X = 520.0
-circle3Y = 225.0
-circle3VX = -250.0
-circle3VY = 450.0
-circle3Rad = 50.0
+for i in range(numCircles):
+    circles.append(circleObject([random.randint(0,255),random.randint(0,255),random.randint(0,255)],
+                                 random.randint(5,30),
+                                [random.randint(50,width),random.randint(50,height)], 
+                                [0,0]))
 
 gravityX = 0.0
-gravityY = -100.0
+gravityY = -1000.0
 
-nX = 0.0
-nY = 0.0
+friction = 2
 
-screen.fill((0,0,0))
-
-pygame.draw.circle(screen, colour, (int(circleX), int(450 - circleY)), int(circleRad), 1)
-pygame.draw.circle(screen, colour2, (int(circle2X), int(450 - circle2Y)), int(circle2Rad), 1)
-pygame.draw.circle(screen, colour3, (int(circle3X), int(450 - circle3Y)), int(circle3Rad), 1)
-
-pygame.display.update()
+screenColour = [random.randint(0,255),random.randint(0,255),random.randint(0,255)]
 
 while not gameExit:
+    screen.fill(screenColour)
+    i = 0
+    for circle in circles:
+        if circle.position[0] + circle.radius > width:
+            if circle.velocity[0] > 0:
+                circle.velocity[0] *= -1
+        if circle.position[0] - circle.radius < 0:
+            if circle.velocity[0] < 0:
+                circle.velocity[0] *= -1
+        if circle.position[1] + circle.radius > height:
+            if circle.velocity[1] > 0:
+                circle.velocity[1] *= -1
+        if circle.position[1] - circle.radius < 0:
+            if circle.velocity[1] < 0:
+                circle.velocity[1] *= -1
+        j = 0
+        for otherCircle in circles:
+            if i != j:
+                if ((circle.position[0] - otherCircle.position[0])**2)+((circle.position[1] - otherCircle.position[1])**2) < ((circle.radius + otherCircle.radius) ** 2):
+                    nX = circle.position[0] - otherCircle.position[0]
+                    nY = circle.position[1] - otherCircle.position[1]
 
-    if circleX + circleRad > width:
-      if circleVX > 0:
-        circleVX *= -1
-    if circleX - circleRad < 0:
-      if circleVX < 0:
-        circleVX *= -1
-    if circleY + circleRad > height:
-      if circleVY > 0:
-        circleVY *= -1
-    if circleY - circleRad < 0:
-      if circleVY < 0:
-        circleVY *= -1
+                    circle.velocity[0] = nX * 10
+                    circle.velocity[1] = nY * 10
+            j += 1
 
-    if circle2X + circle2Rad > width:
-      if circle2VX > 0:
-        circle2VX *= -1
-    if circle2X - circle2Rad < 0:
-      if circle2VX < 0:
-        circle2VX *= -1
-    if circle2Y + circle2Rad > height:
-      if circle2VY > 0:
-        circle2VY *= -1
-    if circle2Y - circle2Rad < 0:
-      if circle2VY < 0:
-        circle2VY *= -1
+        circle.velocity[0] += gravityX/fps
+        circle.velocity[1] += gravityY/fps
 
-    if circle3X + circle3Rad > width:
-      if circle3VX > 0:
-        circle3VX *= -1
-    if circle3X - circle3Rad < 0:
-      if circle3VX < 0:
-        circle3VX *= -1
-    if circle3Y + circle3Rad > height:
-      if circle3VY > 0:
-        circle3VY *= -1
-    if circle3Y - circle3Rad < 0:
-      if circle3VY < 0:
-        circle3VY *= -1
+        circle.position[0] += circle.velocity[0]/fps
+        circle.position[1] += circle.velocity[1]/fps
 
-    if ((circleX - circle2X)**2)+((circleY - circle2Y)**2) < ((circleRad + circle2Rad) ** 2):
-        nX = circleX - circle2X
-        nY = circleY - circle2Y
-
-        circleVX += nX
-        circleVY += nY
-
-        circle2VX -= nX
-        circle2VY -= nY
-
-    if ((circle2X - circle3X)**2)+((circle2Y - circle3Y)**2) < ((circle2Rad + circle3Rad) ** 2):
-        nX = circle2X - circle3X
-        nY = circle2Y - circle3Y
-
-        circle2VX += nX
-        circle2VY += nY
-
-        circle3VX -= nX
-        circle3VY -= nY
-
-    if ((circleX - circle3X)**2)+((circleY - circle3Y)**2) < ((circleRad + circle3Rad) ** 2):
-        nX = circleX - circle3X
-        nY = circleY - circle3Y
-
-        circleVX += nX
-        circleVY += nY
-
-        circle3VX -= nX
-        circle3VY -= nY
-
-    circleVX += gravityX/fps
-    circleVY += gravityY/fps
-
-    circleX += circleVX/fps
-    circleY += circleVY/fps
-    
-    circle2VX += gravityX/fps
-    circle2VY += gravityY/fps
-        
-    circle2X += circle2VX/fps
-    circle2Y += circle2VY/fps
-
-    circle3VX += gravityX/fps
-    circle3VY += gravityY/fps
-        
-    circle3X += circle3VX/fps
-    circle3Y += circle3VY/fps
-
-    print(circle3VY)
-
-    screen.fill((0,0,0))
-
-    pygame.draw.circle(screen, colour, (int(circleX), int(450 - circleY)), int(circleRad), 0)
-    pygame.draw.circle(screen, colour2, (int(circle2X), int(450 - circle2Y)), int(circle2Rad), 0)
-    pygame.draw.circle(screen, colour3, (int(circle3X), int(450 - circle3Y)), int(circle3Rad), 0)
+        pygame.draw.circle(screen, circle.colour, (int(circle.position[0]), int(450 - circle.position[1])), int(circle.radius), 0)
+        i += 1
 
     pygame.display.update()
 
