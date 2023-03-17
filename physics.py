@@ -1,12 +1,28 @@
 import pygame, math, random, threading
 from pygame.locals import *
 
-class circleObject:
-    def __init__(self, colour, radius, position, velocity):
+class Circle:
+    def __init__(self, colour, radius, mass, position, velocity, rotation, rotationalVelocity, isStatic = False):
         self.colour = colour
         self.radius = radius
+        self.radius = mass
         self.position = position
         self.velocity = velocity
+        self.rotation = rotation
+        self.rotationalVelocity = rotationalVelocity
+        self.isStatic = isStatic
+
+class Box:
+    def __init__(self, colour, length, width, mass, position, velocity, rotation, rotationalVelocity, isStatic = False):
+        self.colour = colour
+        self.length = length
+        self.width = width
+        self.mass = mass
+        self.position = position
+        self.velocity = velocity
+        self.rotation = rotation
+        self.rotationalVelocity = rotationalVelocity
+        self.isStatic = isStatic
 
 width = 800
 height = 450
@@ -19,14 +35,14 @@ clock = pygame.time.Clock()
 gameExit = False
 
 fps = 1000.0
-numCircles = 100
-circles = []
+objects = []
 
-for i in range(numCircles):
-    circles.append(circleObject([random.randint(0,255),random.randint(0,255),random.randint(0,255)],
-                                 random.randint(5,30),
-                                [random.randint(50,width),random.randint(50,height)], 
-                                [0,0]))
+objects.append(Circle())
+objects.append(Circle())
+objects.append(Circle())
+objects.append(Box())
+objects.append(Box())
+objects.append(Box())
 
 gravityX = 0.0
 gravityY = -1000.0
@@ -38,37 +54,37 @@ screenColour = [random.randint(0,255),random.randint(0,255),random.randint(0,255
 while not gameExit:
     screen.fill(screenColour)
     i = 0
-    for circle in circles:
-        if circle.position[0] + circle.radius > width:
-            if circle.velocity[0] > 0:
-                circle.velocity[0] *= -1
-        if circle.position[0] - circle.radius < 0:
-            if circle.velocity[0] < 0:
-                circle.velocity[0] *= -1
-        if circle.position[1] + circle.radius > height:
-            if circle.velocity[1] > 0:
-                circle.velocity[1] *= -1
-        if circle.position[1] - circle.radius < 0:
-            if circle.velocity[1] < 0:
-                circle.velocity[1] *= -1
+    for object in objects:
+        if object.position[0] + object.radius > width:
+            if object.velocity[0] > 0:
+                object.velocity[0] *= -1
+        if object.position[0] - object.radius < 0:
+            if object.velocity[0] < 0:
+                object.velocity[0] *= -1
+        if object.position[1] + object.radius > height:
+            if object.velocity[1] > 0:
+                object.velocity[1] *= -1
+        if object.position[1] - object.radius < 0:
+            if object.velocity[1] < 0:
+                object.velocity[1] *= -1
         j = 0
-        for otherCircle in circles:
+        for otherObject in objects:
             if i != j:
-                if ((circle.position[0] - otherCircle.position[0])**2)+((circle.position[1] - otherCircle.position[1])**2) < ((circle.radius + otherCircle.radius) ** 2):
-                    nX = circle.position[0] - otherCircle.position[0]
-                    nY = circle.position[1] - otherCircle.position[1]
+                if ((object.position[0] - otherObject.position[0])**2)+((object.position[1] - otherObject.position[1])**2) < ((object.radius + otherObject.radius) ** 2):
+                    nX = object.position[0] - otherObject.position[0]
+                    nY = object.position[1] - otherObject.position[1]
 
-                    circle.velocity[0] = nX * 10
-                    circle.velocity[1] = nY * 10
+                    object.velocity[0] = nX * 10
+                    object.velocity[1] = nY * 10
             j += 1
 
-        circle.velocity[0] += gravityX/fps
-        circle.velocity[1] += gravityY/fps
+        object.velocity[0] += gravityX/fps
+        object.velocity[1] += gravityY/fps
 
-        circle.position[0] += circle.velocity[0]/fps
-        circle.position[1] += circle.velocity[1]/fps
+        object.position[0] += object.velocity[0]/fps
+        object.position[1] += object.velocity[1]/fps
 
-        pygame.draw.circle(screen, circle.colour, (int(circle.position[0]), int(450 - circle.position[1])), int(circle.radius), 0)
+        pygame.draw.circle(screen, object.colour, (int(object.position[0]), int(450 - object.position[1])), int(object.radius), 0)
         i += 1
 
     pygame.display.update()
